@@ -5,10 +5,58 @@ from discord.ext import commands
 from discord import File
 
 # get your own api key from "https://developer.riotgames.com/"
-g_api_key = "RGAPI-c879cd51-15bb-4144-afd3-fc484c3f7faa"
+g_api_key = "RGAPI-4646500c-a2c1-4c3f-9141-66a3dd8fc876"
 g_region = "na"
-g_summoner_name = "le5le"
-def get_encrypted():
+g_summoner_name = "stanza"
+
+# champs by champ id: http://ddragon.leagueoflegends.com/cdn/9.3.1/data/en_US/champion.json
+
+# data that will be used to compute the tier
+# Team data
+
+# int
+# in seconds ex) 1142
+gameDuration = []
+
+# String
+# "Win" or "Fail"
+win = []
+
+# Player's champion data
+# from getMatchData()
+# int
+championId = []
+kills = []
+deaths = []
+assists = []
+DmgToChamp = []
+DmgToTurret = []
+DmgTaken = []
+totalGold = []
+cs = []
+supChampsId = []
+# 1~18
+champLV = []
+# in seconds ex) 40
+timeCCingOthers = []
+
+# from isSupport()
+supChampsId = []
+
+##################################너가 할꺼 ########################################
+# game duration, kills, deaths, assists 갖고 알아서
+kda = []
+# dmg per sec
+DPS = []
+# dmg per min
+DPM = []
+###################################################################################
+
+# boolean
+isSupChamp = []
+isFirstBlood =[]
+
+def getEncryptedId():
     summonerSearchURL = "https://" + g_region + "1.api.riotgames.com/lol/summoner/v4/summoners/by-name/" + g_summoner_name + "?api_key=" + g_api_key
     response = requests.get(summonerSearchURL)
     responseJson = response.json()
@@ -16,34 +64,119 @@ def get_encrypted():
     return responseJson['accountId']
 
 # get_last_20_games
-def get_tier(encId):
+def getMatchData(encId):
     matchSearchURL = "https://" + g_region + "1.api.riotgames.com/lol/match/v4/matchlists/by-account/" + encId + "?api_key=" + g_api_key
     response = requests.get(matchSearchURL)
     responseJson = response.json()
 
-    for matchId in responseJson['matches']:
-        gameId = matchId['gameId']
+    nthGame = 0
+    for matchInfo in responseJson['matches']:
+        # print(matchInfo['gameId'])
 
+        print(len(kills))
+        if len(kills) == 20:
+            return
+        gameId = matchInfo['gameId']
+        myChampId = matchInfo['champion']
+
+        # getting into the more details of the current match
         matchURL = "https://" + g_region + "1.api.riotgames.com/lol/match/v4/matches/" + str(gameId) + "?api_key=" + g_api_key
-
         response = requests.get(matchURL)
         responseJson = response.json()
 
+        # Ignore other mathces than ARAM game mode
         if responseJson['gameMode'] == "ARAM":
-            if responseJson['teams'][0]['win'] == "Win":
-                #['any data']
-                print(responseJson['teams'][0]['win'])
+            # blue team
+            blueGameResult = responseJson['teams'][0]['win']
+            # red team
+            redGameResult = responseJson['teams'][1]['win']
 
-# KDA/분당 DMG/ 골드획득량/ cs array, figure out how to check the chmaps that I played
+            gameDuration.insert(nthGame, responseJson['gameDuration'])
+            for participant in responseJson['participants']:
+                if participant['championId'] == myChampId:
+                    championId.insert(nthGame, participant['championId'])
+                    if participant['teamId'] == 100:
+                        win.insert(nthGame, blueGameResult)
+                    else:
+                        win.insert(nthGame, redGameResult)
+                    kills.insert(nthGame, participant['stats']['kills'])
+                    deaths.insert(nthGame,participant['stats']['deaths'])
+                    assists.insert(nthGame,participant['stats']['deaths'])
+                    DmgToChamp.insert(nthGame,participant['stats']['totalDamageDealtToChampions'])
+                    DmgToTurret.insert(nthGame,participant['stats']['damageDealtToTurrets'])
+                    DmgTaken.insert(nthGame,participant['stats']['totalDamageTaken'])
+                    timeCCingOthers.insert(nthGame,participant['stats']['timeCCingOthers'])
+                    totalGold.insert(nthGame,participant['stats']['goldEarned'])
+                    cs.insert(nthGame,participant['stats']['totalMinionsKilled'])
+                    champLV.insert(nthGame,participant['stats']['champLevel'])
+                    isFirstBlood.insert(nthGame,participant['stats']['firstBloodKill'])
+                    nthGame += 1
+
+
+# KDA/분당 DMG/ 골드획득량/cs array
 # up to last 20 games
-win = ['true', 'false']
-kda = [3.5, 5.4, 6.0]
-isSupport = ['true', 'false']
-DPS = [1, 2, 3]
-cs = [123, 456]
 
-# find tier based on the data stores in array
-def get_tier():
+# lulu
+# leona
+# blitzcrank
+# morgana
+# pantheon
+# thresh
+# bard
+# rakan
+# alistar
+# lux
+# zilean
+# taric
+# janna
+# nautilus
+# pyke
+# sona
+# soraka
+# braum
+# zyra
+# karma
+# nami
 
-encId = get_encrypted()
-get_tier(encId)
+# do not exist in json file: http://ddragon.leagueoflegends.com/cdn/9.3.1/data/en_US/champion.json
+# yuumi
+# tahm kench
+
+def isSupport():
+    supChamps = ['Lulu', 'Leona' ,'Blitzcrank', 'Morgana', 'Pantheon', 'Thresh', 'Bard', 'Rakan', 'Alistar',
+                'Lux', 'Zilean', 'Taric', 'Janna', 'Nautilus', 'Pyke', 'Sona', 'Soraka', 'Braum',
+                'Zyra', 'Karma', 'Nami']
+
+    champsURL = "http://ddragon.leagueoflegends.com/cdn/9.3.1/data/en_US/champion.json"
+    response = requests.get(champsURL)
+    responseJson = response.json()
+    for champ in supChamps:
+        supChampsId.append(int(responseJson['data'][champ]['key']))
+        responseJson['data']
+    for champ in championId:
+        # print(champ)
+        # print(supchampsId)
+        if champ in supchampsId:
+            isSupChamp.append(True)
+        else:
+            isSupChamp.append(False)
+
+
+##################################너가 할꺼 ########################################
+def computeTier():
+    # Computes the tier based on arrays filled with datas, up to last 20 games throughout the season
+    # the most recent match's kill obtained by the player's champ would be kills[0]
+
+
+getMatchData(getEncryptedId())
+isSupport()
+# print("Champion Id: ")
+# print(championId)
+# print("Sup champs Id: ")
+# print(supchampsId)
+print("Sup champ bools`:")
+print(isSupChamp)
+# print(kills)
+# print(deaths)
+# print(assists)
+# print(win)
