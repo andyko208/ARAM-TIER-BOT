@@ -167,6 +167,9 @@ def computeTier():
     # Computes the tier based on arrays filled with datas, up to last 20 games throughout the season
     # the most recent match's kill obtained by the player's champ would be kills[0]
     a = 0
+    as asd
+    as
+    asd
 
 getMatchData(getEncryptedId())
 isSupport()
