@@ -5,7 +5,7 @@ from discord.ext import commands
 from discord import File
 
 # get your own api key from "https://developer.riotgames.com/"
-g_api_key = "RGAPI-45f99881-6c4b-4abf-a1fc-5317c7bf4e41"
+g_api_key = "RGAPI-1037bb51-2f0c-42fc-97c0-e2befe88c330"
 g_region = "na"
 g_summoner_name = "CRSXW"
 
@@ -34,7 +34,6 @@ DmgToTurret = []
 DmgTaken = []
 totalGold = []
 cs = []
-supChampsId = []
 # 1~18
 champLV = []
 # in seconds ex) 40
@@ -45,7 +44,7 @@ supChampsId = []
 
 ##################################너가 할꺼 ########################################
 # game duration, kills, deaths, assists 갖고 알아서
-kda = []
+KDA = []
 # dmg per sec
 DPS = []
 
@@ -68,7 +67,6 @@ def getEncryptedId():
     summonerSearchURL = "https://" + g_region + "1.api.riotgames.com/lol/summoner/v4/summoners/by-name/" + g_summoner_name + "?api_key=" + g_api_key
     response = requests.get(summonerSearchURL)
     responseJson = response.json()
-
     return responseJson['accountId']
 
 # get_last_20_games
@@ -101,6 +99,7 @@ def getMatchData(encId):
 
             gameDuration.insert(nthGame, responseJson['gameDuration'])
             for participant in responseJson['participants']:
+                # print(participant)
                 if participant['championId'] == myChampId:
                     championId.insert(nthGame, participant['championId'])
                     if participant['teamId'] == 100:
@@ -123,29 +122,29 @@ def getMatchData(encId):
                     isQuadra.insert(nthGame,participant['stats']['quadraKills'])
                     isPenta.insert(nthGame,participant['stats']['pentaKills'])
                     nthGame += 1
+            # print(kills)
+            # print(assists)
+            # print(deaths)
+def getKDA():
 
-    def getKDA():
-        nthgame = 0
-        for i in range(0,len(kills)):
-            kda.insert(nthgame,(kills[i]+assists[i])/deaths[i])
-            nthgame+=1
+    for i in range(len(kills)):
+        KDA.append((kills[i]+assists[i])/deaths[i])
+        # print(i)
+        # print((kills[i]+assists[i])/deaths[i])
+        print(KDA)
+def getDPM():
 
-    def getDPS():
-        nthgame = 0
-        for i in range(0,len(DmgToChamp)):
-            DPS.insert(nthgame,(DmgToChamp[i]/gameDuration[i]))
-            nthgame+=1
+    for i in range(len(kills)):
+        DPM.append((DmgToChamp[i]/gameDuration[i])*60)
 
-    def getDPM():
-        nthgame = 0
-        for i in range(0,len(DPS)):
-            DPM.insert(nthgame,DPS[i]*60)
-            nthgame+=1
-    def getGPM():
-        nthgame = 0
-        for i in range(0,len(gameDuration)):
-            GPM.insert(nthgame,((totalGold[i]/gameDuration[i])*60))
-            nthgame+=1
+
+def getGPM():
+
+    for i in range(len(kills)):
+        GPM.append((totalGold[i]/gameDuration[i])*60)
+
+
+
 
 
 
@@ -192,7 +191,7 @@ def isSupport():
     for champ in championId:
         # print(champ)
         # print(supchampsId)supchampsId
-        if champ in supchampsId:
+        if champ in supChampsId:
             isSupChamp.append(True)
         else:
             isSupChamp.append(False)
@@ -202,84 +201,81 @@ def isSupport():
 def get_KDAscore (avg_KDA,isSupChamp):
         if bool(isSupChamp): #if it a support
             if avg_KDA > 5:
-                total_val+=0.4
+                return 0.4
             elif avg_KDA > 4:
-                total_val+=0.35
+                return 0.35
             elif avg_KDA > 3:
-                total_val+=0.3
+                return 0.3
             elif avg_KDA > 2.5:
-                total_val+=0.25
+                return 0.25
             elif avg_KDA > 2:
-                total_val+=0.2
+                return 0.2
             elif avg_KDA > 1:
-                total_val+=0.1
+                return 0.1
             else:
-                total_val+=0.05
-            if avg_fb > 10 or avg_fba > 14:
-                total_val+=0.1
+                return 0.05
         else: #when its not support
             if avg_KDA > 4:
-                total_val+=0.4
+                return 0.4
             elif avg_KDA > 3.5:
-                total_val+=0.35
+                return 0.35
             elif avg_KDA > 3:
-                total_val+=0.3
+                return 0.3
             elif avg_KDA > 2.5:
-                total_val+=0.25
+                return 0.25
             elif avg_KDA > 2:
-                total_val+=0.2
+                return 0.2
             elif avg_KDA > 1:
-                total_val+=0.1
+                return 0.1
             else:
-                total_val+=0.05
-            if avg_fb > 13 or avg_fba > 15:
-                total_val+=0.1
+                return 0.05
 def get_GPMscore(avg_GPM):
-    if avg_GPM > 640:
-        total_val+=0.2
-    elif avg_GPM > 620:
-        total_val+=0.15
-    elif avg_GPM > 600:
-        total_val+=0.13
-    elif avg_GPM > 580:
-        total_val+=0.1
+    if avg_GPM > 720:
+        return 0.3
+    elif avg_GPM > 680:
+        return 0.25
+    elif avg_GPM > 630:
+        return 0.2
     elif avg_GPM > 560:
-        total_val+=0.08
+        return 0.15
     elif avg_GPM > 540:
-        total_val+=0.05
+        return 0.1
+    elif avg_GPM > 500:
+        return 0.05
     else:
-        total_val+=0.03
+        return 0.03
 def get_DPMscore(avg_DPM,isSupChamp):
     if bool(isSupChamp):
-        if avg_DPM > 1600:
-            total_val+=0.3
-        elif avg_DPM > 1550:
-            total_val+=0.28
-        elif avg_DPM > 1500:
-            total_val+=0.25
-        elif avg_DPM > 1450:
-            total_val+=0.22
-        elif avg_DPM > 1350:
-            total_val+=0.18
-        elif avg_DPM > 1200:
-            total_val+=0.15
-        else:
-            total_val+=0.1
-    else: #when its not support
         if avg_DPM > 1400:
-            total_val+=0.3
+            return 0.3
         elif avg_DPM > 1350:
-            total_val+=0.26
+            return 0.26
         elif avg_DPM > 1300:
-            total_val+=0.22
+            return 0.22
         elif avg_DPM > 1250:
-            total_val+=0.17
+            return 0.17
         elif avg_DPM > 1200:
-            total_val+=0.15
+            return 0.15
         elif avg_DPM > 1100:
-            total_val+=0.13
+            return 0.13
         else:
-            total_val+=0.1
+            return 0.1
+
+    else: #when its not support
+        if avg_DPM > 1800:
+            return 0.3
+        elif avg_DPM > 1700:
+            return 0.26
+        elif avg_DPM > 1600:
+            return 0.22
+        elif avg_DPM > 1500:
+            return 0.17
+        elif avg_DPM > 1400:
+            return 0.13
+        elif avg_DPM > 1200:
+            return 0.1
+        else:
+            return 0.05
 
 def tier_result(percent):
     if percent >95:
@@ -300,17 +296,35 @@ def tier_result(percent):
         return "Bronze"
 
 def computeTier():
+    # KDA = [3.0,3.0,6.0]
+    # DPM = [1500,1400,1449]
+    # GPM = [600,700,800]
+    # isFirstBlood = [True,True,True]
+    #isFirstBloodassist = [True,True,True]
+    #isPenta = [False,False,True]
+    #isQuadra = [False,False,True]
+    #isTriple = [False,False,True]
+    #isSupChamp = [False,False,False]
     total_val = 0
+    total_fb = 0
+    total_fba = 0
+    penta = 0
+    quadra = 0
+    triple = 0
+    total_KDA = 0
+    total_DPM = 0
+    total_GPM = 0
+    avg_fb=0
+    avg_fba=0
+    getKDA()
+    print(KDA)
+    getDPM()
+    print(DPM)
+    getGPM()
+    print(GPM)
     for i in range(0,len(KDA)):
-        total_KDA += KDA[i]#kda
-        total_DPM += DPM[i]#damamge
-        total_GPM += GPM[i]#gold
-        total_cs += cs[i]#cs
-
-        avg_KDA = total_KDA/len(KDA)
-        avg_DPM = total_DPM/len(DPM)
-        avg_GPM = total_GPM/len(GPM)
-        avg_cs = total_cs/len(cs)
+        total_GPM += GPM[i] #gold
+        #total_cs += cs[i]#cs
         if isFirstBlood[i]:
             total_fb +=1
         if isFirstBloodassist[i]:
@@ -323,17 +337,26 @@ def computeTier():
             quadra +=1
         if(isTriple[i]==True):
             triple +=1
+        total_KDA+=get_KDAscore(KDA[i],isSupChamp[i])
+        total_DPM+=get_DPMscore(DPM[i],isSupChamp[i])
+    if avg_fb > (len(KDA)/2) or avg_fba > 14:
+        return 0.1
 
-    total_val +=penta*0.1
-    total_val +=quadra*0.05
-    total_val +=triple*0.03
+    avg_DPM= total_DPM/len(DPM)
+    avg_GPM = total_GPM/(len(GPM))
+    avg_KDA = total_KDA/(len(KDA))
+    #avg_cs = total_cs/len(cs)
+    total_val +=penta*0.05
+    total_val +=quadra*0.03
+    total_val +=triple*0.01
+    total_val += avg_KDA+avg_DPM
+    total_val+= get_GPMscore(avg_GPM)
 
-    get_KDAscore(avg_KDA,isSupChamp[i])
-    get_GPMscore(avg_GPM)
-    get_DPMscore(avg_DPM,isSupChamp[i])
     percent = total_val*100
+    print(percent)
     tier = tier_result(percent)
 
+    return tier
 
 
 
@@ -347,9 +370,10 @@ isSupport()
 # print(championId)
 # print("Sup champs Id: ")
 # print(supchampsId)
-print("Sup champ bools`:")
-print(isSupChamp)
+#print("Sup champ bools`:")
+#print(isSupChamp)
 # print(kills)
 # print(deaths)
 # print(assists)
 # print(win)
+print(computeTier())
