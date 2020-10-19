@@ -23,7 +23,7 @@ gameDuration = []
 win = []
 
 # Player's champion data
-# from getMatchData()
+
 # int
 championId = []
 kills = []
@@ -34,14 +34,10 @@ DmgToTurret = []
 DmgTaken = []
 totalGold = []
 cs = []
-supChampsId = []
 # 1~18
 champLV = []
 # in seconds ex) 40
 timeCCingOthers = []
-
-# from isSupport()
-supChampsId = []
 
 ##################################너가 할꺼 ########################################
 # game duration, kills, deaths, assists 갖고 알아서
@@ -141,7 +137,7 @@ def getMatchData(encId):
 # do not exist in json file: http://ddragon.leagueoflegends.com/cdn/9.3.1/data/en_US/champion.json
 # yuumi
 # tahm kench
-
+supchampsId = []
 def isSupport():
     supChamps = ['Lulu', 'Leona' ,'Blitzcrank', 'Morgana', 'Pantheon', 'Thresh', 'Bard', 'Rakan', 'Alistar',
                 'Lux', 'Zilean', 'Taric', 'Janna', 'Nautilus', 'Pyke', 'Sona', 'Soraka', 'Braum',
@@ -151,7 +147,7 @@ def isSupport():
     response = requests.get(champsURL)
     responseJson = response.json()
     for champ in supChamps:
-        supChampsId.append(int(responseJson['data'][champ]['key']))
+        supchampsId.append(int(responseJson['data'][champ]['key']))
         responseJson['data']
     for champ in championId:
         # print(champ)
