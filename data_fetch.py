@@ -5,7 +5,7 @@ from discord.ext import commands
 from discord import File
 
 # get your own api key from "https://developer.riotgames.com/"
-g_api_key = "RGAPI-d777b55b-dcad-4cbc-8d6f-997bb85c894a"
+g_api_key = "RGAPI-2d4d982c-064d-4b70-948f-a7c98f0f3ef7"
 g_region = "na"
 g_summoner_name = "CRSXW"
 
@@ -63,30 +63,38 @@ isTriple = []
 isQuadra = []
 isPenta = []
 
+
 def getName(region, summonerName, apiKey):
     summonerSearchURL = "https://" + region + "1.api.riotgames.com/lol/summoner/v4/summoners/by-name/" + summonerName + "?api_key=" + apiKey
+    print(summonerSearchURL)
     response = requests.get(summonerSearchURL)
     responseJson = response.json()
+    print('In getName')
     print(responseJson)
     return responseJson['name']
 
 def getProfileIcon(region, summonerName, apiKey):
     summonerSearchURL = "https://" + region + "1.api.riotgames.com/lol/summoner/v4/summoners/by-name/" + summonerName + "?api_key=" + apiKey
+    print(summonerSearchURL)
     response = requests.get(summonerSearchURL)
     responseJson = response.json()
+    print('In getProfileIcon')
     print(responseJson)
     return responseJson['profileIconId']
 
 def getEncryptedId(region, summonerName, apiKey):
     summonerSearchURL = "https://" + region + "1.api.riotgames.com/lol/summoner/v4/summoners/by-name/" + summonerName + "?api_key=" + apiKey
+    print(summonerSearchURL)
     response = requests.get(summonerSearchURL)
     responseJson = response.json()
+    print('In getEncryptedId')
     print(responseJson)
     return responseJson['accountId']
 
 # get_last_20_games
 def getMatchData(region, encId, apiKey):
     matchSearchURL = "https://" + region + "1.api.riotgames.com/lol/match/v4/matchlists/by-account/" + encId + "?api_key=" + apiKey
+    print(matchSearchURL)
     response = requests.get(matchSearchURL)
     responseJson = response.json()
     print(responseJson)
@@ -95,8 +103,8 @@ def getMatchData(region, encId, apiKey):
     for matchInfo in responseJson['matches']:
         # print(matchInfo['gameId'])
 
-        #print(len(kills))
-        if len(kills) == 20:
+        # Changed to 5 for easier testing
+        if len(kills) == 5:
             return
         gameId = matchInfo['gameId']
         myChampId = matchInfo['champion']
@@ -145,8 +153,13 @@ def getMatchData(region, encId, apiKey):
             # print(deaths)
 
 def getKDA():
-
+    print("deaths:")
+    print(deaths)
+    print("kills:")
+    print(kills)
     for i in range(len(kills)):
+        print("kills at: " + str(i))
+        print(kills[i])
         KDA.append((kills[i]+assists[i])/deaths[i])
         # print(i)
         # print((kills[i]+assists[i])/deaths[i])
@@ -216,8 +229,8 @@ def isSupport():
             isSupChamp.append(False)
 
 
-##################################너가 할꺼 ########################################
-def get_KDAscore (avg_KDA,isSupChamp):
+################################## Joongwook ########################################
+def get_KDAscore (avg_KDA, isSupChamp):
         if bool(isSupChamp): #if it a support
             if avg_KDA > 5:
                 return 0.4
@@ -296,8 +309,9 @@ def get_DPMscore(avg_DPM,isSupChamp):
         else:
             return 0.05
 
+# edit with bronze 1, bronze 2, ..
 def tier_result(percent):
-    if percent >95:
+    if percent > 95:
         return "Challenger"
     elif percent > 90:
         return "Grandmaster"
@@ -314,10 +328,10 @@ def tier_result(percent):
     else:
         return "Bronze"
 
-def computeTier():
-
-    # getMatchData(g_region, getEncryptedId(g_region, g_summoner_name, g_api_key), g_api_key)
-    # isSupport()
+def computeTier(summonerName):
+    # print('Computing tier for: ' + summonerName)
+    getMatchData(g_region, getEncryptedId(g_region, summonerName, g_api_key), g_api_key)
+    isSupport()
     # KDA = [3.0,3.0,6.0]
     # DPM = [1500,1400,1449]
     # GPM = [600,700,800]
@@ -380,7 +394,7 @@ def computeTier():
 
     return tier
 
-
+###########################################################################################
 
 
 
