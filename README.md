@@ -1,7 +1,7 @@
 # ARAM_TIER_BOT
 A discord bot that generates tiers for ARAM match in the League of Legends.
 
-![Manaflux Main Page](/imgs/tier.png "Commands")
+![Main header](/imgs/tier.png "Commands")
 
 ## Features
 
@@ -13,11 +13,18 @@ https://discord.com/api/oauth2/authorize?client_id=768191425560051733&permission
 
 ## Commands
 
-- .help
-![Manaflux Main Page](/imgs/help.png "help")
 
-- .region
-![Manaflux Main Page](/imgs/region.png "region")
+.help
+
+
+
+![Main_help](/imgs/help.png "help")
+
+.region
+
+
+
+![Main_region](/imgs/region.png "region")
 
 ## Built with
 - Python
