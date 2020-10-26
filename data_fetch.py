@@ -5,9 +5,9 @@ from discord.ext import commands
 from discord import File
 
 # get your own api key from "https://developer.riotgames.com/"
-g_api_key = "RGAPI-1037bb51-2f0c-42fc-97c0-e2befe88c330"
+g_api_key = "RGAPI-2d4d982c-064d-4b70-948f-a7c98f0f3ef7"
 g_region = "na"
-g_summoner_name = "CRSXW"
+g_summoner_name = "Stanza"
 
 # champs by champ id: http://ddragon.leagueoflegends.com/cdn/9.3.1/data/en_US/champion.json
 
@@ -63,24 +63,48 @@ isTriple = []
 isQuadra = []
 isPenta = []
 
-def getEncryptedId():
-    summonerSearchURL = "https://" + g_region + "1.api.riotgames.com/lol/summoner/v4/summoners/by-name/" + g_summoner_name + "?api_key=" + g_api_key
+
+def getName(region, summonerName, apiKey):
+    summonerSearchURL = "https://" + region + "1.api.riotgames.com/lol/summoner/v4/summoners/by-name/" + summonerName + "?api_key=" + apiKey
+    print(summonerSearchURL)
     response = requests.get(summonerSearchURL)
     responseJson = response.json()
+    print('In getName')
+    print(responseJson)
+    return responseJson['name']
+
+def getProfileIcon(region, summonerName, apiKey):
+    summonerSearchURL = "https://" + region + "1.api.riotgames.com/lol/summoner/v4/summoners/by-name/" + summonerName + "?api_key=" + apiKey
+    print(summonerSearchURL)
+    response = requests.get(summonerSearchURL)
+    responseJson = response.json()
+    print('In getProfileIcon')
+    print(responseJson)
+    return responseJson['profileIconId']
+
+def getEncryptedId(region, summonerName, apiKey):
+    summonerSearchURL = "https://" + region + "1.api.riotgames.com/lol/summoner/v4/summoners/by-name/" + summonerName + "?api_key=" + apiKey
+    print(summonerSearchURL)
+    response = requests.get(summonerSearchURL)
+    responseJson = response.json()
+    print('In getEncryptedId')
+    print(responseJson)
     return responseJson['accountId']
 
 # get_last_20_games
-def getMatchData(encId):
-    matchSearchURL = "https://" + g_region + "1.api.riotgames.com/lol/match/v4/matchlists/by-account/" + encId + "?api_key=" + g_api_key
+def getMatchData(region, encId, apiKey, numGames):
+    matchSearchURL = "https://" + region + "1.api.riotgames.com/lol/match/v4/matchlists/by-account/" + encId + "?api_key=" + apiKey
+    print(matchSearchURL)
     response = requests.get(matchSearchURL)
     responseJson = response.json()
+    print(responseJson)
 
     nthGame = 0
     for matchInfo in responseJson['matches']:
         # print(matchInfo['gameId'])
 
-        #print(len(kills))
-        if len(kills) == 20:
+        # Changed to 5 for easier testing
+        if len(kills) == numGames:
             return
         gameId = matchInfo['gameId']
         myChampId = matchInfo['champion']
@@ -90,6 +114,8 @@ def getMatchData(encId):
         response = requests.get(matchURL)
         responseJson = response.json()
 
+        print("Gamemode: ")
+        print(responseJson['gameMode'])
         # Ignore other mathces than ARAM game mode
         if responseJson['gameMode'] == "ARAM":
             # blue team
@@ -125,13 +151,27 @@ def getMatchData(encId):
             # print(kills)
             # print(assists)
             # print(deaths)
-def getKDA():
 
+def getKDA():
+    print("deaths:")
+    print(deaths)
+    print("kills:")
+    print(kills)
     for i in range(len(kills)):
-        KDA.append((kills[i]+assists[i])/deaths[i])
+        print("kills at: " + str(i))
+        print(kills[i])
+        if kills[i] + assists[i] != 0:
+            # perfect KDA
+            if deaths[i] == 0:
+                KDA.append(5)
+            else:
+                KDA.append((kills[i]+assists[i])/deaths[i])
+        # user left at the beginning of the game / did not play the game properly
+        else:
+            KDA.append(0)
         # print(i)
         # print((kills[i]+assists[i])/deaths[i])
-        print(KDA)
+        # print(KDA)
 def getDPM():
 
     for i in range(len(kills)):
@@ -148,8 +188,7 @@ def getGPM():
 
 
 
-# KDA/분당 DMG/ 골드획득량/cs array
-# up to last 20 games
+# up to last 10 games
 
 # lulu
 # leona
@@ -182,7 +221,13 @@ def isSupport():
                 'Lux', 'Zilean', 'Taric', 'Janna', 'Nautilus', 'Pyke', 'Sona', 'Soraka', 'Braum',
                 'Zyra', 'Karma', 'Nami', 'Yuumi']
 
-    champsURL = "http://ddragon.leagueoflegends.com/cdn/10.20.1/data/en_US/champion.json"
+    versionURL = "https://ddragon.leagueoflegends.com/api/versions.json"
+    vResponse = requests.get(versionURL)
+    vResponseJson = vResponse.json()
+    mostRecentVersion = vResponseJson[0]
+
+    champsURL = "http://ddragon.leagueoflegends.com/cdn/" + mostRecentVersion + "/data/en_US/champion.json"
+    print(champsURL)
     response = requests.get(champsURL)
     responseJson = response.json()
     for champ in supChamps:
@@ -197,8 +242,17 @@ def isSupport():
             isSupChamp.append(False)
 
 
-##################################너가 할꺼 ########################################
-def get_KDAscore (avg_KDA,isSupChamp):
+################################## Joongwook ########################################
+def get_winScore():
+    total = 0
+    for result in win:
+        if result == "Win":
+            total += 0.5 / len(win)
+    print("total added:")
+    print(total)
+    return total
+
+def get_KDAscore (avg_KDA, isSupChamp):
         if bool(isSupChamp): #if it a support
             if avg_KDA > 5:
                 return 0.4
@@ -212,8 +266,10 @@ def get_KDAscore (avg_KDA,isSupChamp):
                 return 0.2
             elif avg_KDA > 1:
                 return 0.1
-            else:
+            elif avg_KDA > 0.1:
                 return 0.05
+            else:
+                return 0.001
         else: #when its not support
             if avg_KDA > 4:
                 return 0.4
@@ -278,24 +334,74 @@ def get_DPMscore(avg_DPM,isSupChamp):
             return 0.05
 
 def tier_result(percent):
-    if percent >95:
+    if percent > 95:
         return "Challenger"
     elif percent > 90:
         return "Grandmaster"
     elif percent > 85:
         return "Master"
     elif percent > 80:
-        return "Diamond"
+        if percent > 84:
+            return "Diamond 1"
+        if percent > 83:
+            return "Diamond 2"
+        if percent > 82:
+            return "Diamond 3"
+        else:
+            return "Diamond 4"
     elif percent > 75:
-        return "Platinum"
+        if percent > 79:
+            return "Platinum 1"
+        if percent > 78:
+            return "Platinum 2"
+        if percent > 77:
+            return "Platinum 3"
+        else:
+            return "Platinum 4"
     elif percent > 70:
-        return "Gold"
+        if percent > 74:
+            return "Gold 1"
+        if percent > 73:
+            return "Gold 2"
+        if percent > 72:
+            return "Gold 3"
+        else:
+            return "Gold 4"
     elif percent > 65:
-        return "Silver"
+        if percent > 69:
+            return "Silver 1"
+        if percent > 68:
+            return "Silver 2"
+        if percent > 67:
+            return "Silver 3"
+        else:
+            return "Silver 4"
+    elif percent > 60:
+        if percent > 64:
+            return "Bronze 1"
+        if percent > 63:
+            return "Bronze 2"
+        if percent > 62:
+            return "Bronze 3"
+        else:
+            return "Bronze 4"
+    # percent > 55
     else:
-        return "Bronze"
+        if percent > 59:
+            return "Iron 1"
+        if percent > 58:
+            return "Iron 2"
+        if percent > 57:
+            return "Iron 3"
+        else:
+            return "Iron 4"
 
-def computeTier():
+
+# make calculation more precise with figuring out how to add kill participation
+def computeTier(summonerName, numGames):
+    # print('Computing tier for: ' + summonerName)
+    getMatchData(g_region, getEncryptedId(g_region, summonerName, g_api_key), g_api_key, numGames)
+    isSupport()
     # KDA = [3.0,3.0,6.0]
     # DPM = [1500,1400,1449]
     # GPM = [600,700,800]
@@ -316,56 +422,67 @@ def computeTier():
     total_GPM = 0
     avg_fb=0
     avg_fba=0
-    getKDA()
-    print(KDA)
-    getDPM()
-    print(DPM)
-    getGPM()
-    print(GPM)
-    for i in range(0,len(KDA)):
-        total_GPM += GPM[i] #gold
-        #total_cs += cs[i]#cs
-        if isFirstBlood[i]:
-            total_fb +=1
-        if isFirstBloodassist[i]:
-            total_fba +=1
-        avg_fb =total_fb/len(isFirstBlood)
-        avg_fba =total_fba/len(isFirstBloodassist)
-        if(isPenta[i]==True):
-            penta +=1
-        if(isQuadra[i]==True):
-            quadra +=1
-        if(isTriple[i]==True):
-            triple +=1
-        total_KDA+=get_KDAscore(KDA[i],isSupChamp[i])
-        total_DPM+=get_DPMscore(DPM[i],isSupChamp[i])
-    if avg_fb > (len(KDA)/2) or avg_fba > 14:
-        return 0.1
+    if len(kills) > 0:
+        getKDA()
+        print(KDA)
+        getDPM()
+        print(DPM)
+        getGPM()
+        print(GPM)
+        for i in range(0,len(KDA)):
+            total_GPM += GPM[i] #gold
+            #total_cs += cs[i]#cs
+            if isFirstBlood[i]:
+                total_fb +=1
+            if isFirstBloodassist[i]:
+                total_fba +=1
+            avg_fb =total_fb/len(isFirstBlood)
+            avg_fba =total_fba/len(isFirstBloodassist)
+            if(isPenta[i]==True):
+                penta +=1
+            if(isQuadra[i]==True):
+                quadra +=1
+            if(isTriple[i]==True):
+                triple +=1
+            total_KDA+=get_KDAscore(KDA[i],isSupChamp[i])
+            total_DPM+=get_DPMscore(DPM[i],isSupChamp[i])
+        if avg_fb > (len(KDA)/2) or avg_fba > 14:
+            return 0.1
 
-    avg_DPM= total_DPM/len(DPM)
-    avg_GPM = total_GPM/(len(GPM))
-    avg_KDA = total_KDA/(len(KDA))
-    #avg_cs = total_cs/len(cs)
-    total_val +=penta*0.05
-    total_val +=quadra*0.03
-    total_val +=triple*0.01
-    total_val += avg_KDA+avg_DPM
-    total_val+= get_GPMscore(avg_GPM)
+        avg_DPM= total_DPM/len(DPM)
+        avg_GPM = total_GPM/(len(GPM))
+        avg_KDA = total_KDA/(len(KDA))
+        #avg_cs = total_cs/len(cs)
+        total_val +=penta*0.05
+        total_val +=quadra*0.03
+        total_val +=triple*0.01
+        total_val += avg_KDA+avg_DPM
+        print("avg_KDA+avg_DPM")
+        print((avg_KDA+avg_DPM) * 100)
+        total_val+= get_GPMscore(avg_GPM)
+        total_val+= get_winScore()/len(win)
 
-    percent = total_val*100
-    print(percent)
-    tier = tier_result(percent)
-
-    return tier
-
-
-
+        percent = total_val*100
+        print(percent)
+        tier = tier_result(percent)
+        return tier
+    # have not played any ARAM games during the season
+    return "Unranked"
 
 
 
+###########################################################################################
 
-getMatchData(getEncryptedId())
-isSupport()
+
+
+
+# print(computeTier(g_summoner_name, 5))
+# getMatchData(g_region, getEncryptedId(g_region, g_summoner_name, g_api_key), g_api_key)
+# isSupport()
+# print(computeTier())
+# get_winScore()
+
+
 # print("Champion Id: ")
 # print(championId)
 # print("Sup champs Id: ")
@@ -376,4 +493,3 @@ isSupport()
 # print(deaths)
 # print(assists)
 # print(win)
-print(computeTier())
